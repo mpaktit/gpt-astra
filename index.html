@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>ASTRA: Serpents of the Void</title>
+  <meta name="description" content="A cosmic snake game. Six species, six sectors, rare crystals, a season pass, and a rival that hunts you.">
+  <meta name="theme-color" content="#f3f1fa">
+  <meta property="og:title" content="ASTRA: Serpents of the Void">
+  <meta property="og:description" content="Six serpent species. Six sectors of hostile space. One more run.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+  <script type="module" src="src/main.js"></script>
+</head>
+<body>
+  <a class="skip" href="#view">Skip to content</a>
+  <div id="app" class="shell">
+    <header id="topbar" class="topbar"></header>
+    <nav id="nav" class="nav" aria-label="Main"></nav>
+    <main id="view" class="view" tabindex="-1">
+      <div class="boot"><span class="boot-mark">astra<i>.</i></span></div>
+    </main>
+  </div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <dialog id="reveal" class="reveal" aria-label="Reward"></dialog>
+  <noscript><p class="noscript">ASTRA needs JavaScript to fly.</p></noscript>
+</body>
+</html>
