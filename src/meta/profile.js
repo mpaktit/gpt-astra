@@ -31,6 +31,7 @@ export function createProfile(now = Date.now(), seed = (now ^ 0x5bd1e995) >>> 0)
     missions: { day: '', daily: [], rerolled: false, week: '', weekly: [] },
     achievements: {},
     pass: { season: 1, xp: 0, premium: false, claimedFree: [], claimedPremium: [] },
+    rank: { elo: 1000, best: 1000, streak: 0, last: 0, division: 'unchanged', matches: 0 },
     caches: { opened: 0, sinceEpic: { nebula: 0, void: 0 }, sinceLegendary: { nebula: 0, void: 0 } },
     login: { last: '', streak: 0, pending: false },
     daily: { last: '' },
@@ -71,6 +72,13 @@ export function sanitizeProfile(raw, now = Date.now()) {
   if (isObj(p.stats)) for (const [k, v] of Object.entries(p.stats)) if (k in out.stats && k !== 'deaths') out.stats[k] = num(v, 0, 0, 1e12);
   if (isObj(p.stats?.deaths)) out.stats.deaths = p.stats.deaths;
   for (const k of ['missions', 'achievements', 'pass', 'caches', 'login', 'daily', 'shop', 'purchases', 'flags']) if (isObj(p[k])) out[k] = { ...out[k], ...p[k] };
+  if (isObj(p.rank)) {
+    out.rank = { ...out.rank, ...p.rank };
+    out.rank.elo = Math.floor(num(p.rank.elo, 1000, 0, 5000));
+    out.rank.best = Math.floor(num(p.rank.best, 1000, 0, 5000));
+    out.rank.streak = Math.floor(num(p.rank.streak, 0, -100, 100));
+    out.rank.matches = Math.floor(num(p.rank.matches, 0, 0, 1e9));
+  }
   if (isObj(p.settings)) {
     const d = defaultSettings();
     for (const k of Object.keys(d)) if (typeof p.settings[k] === typeof d[k]) out.settings[k] = p.settings[k];

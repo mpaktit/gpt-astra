@@ -30,7 +30,7 @@ test('boolean aria state attributes render true/false, never empty', () => {
   // home: mode radiogroup
   let out = String(home.render(app));
   const checked = [...out.matchAll(/aria-checked="([^"]*)"/g)].map((m) => m[1]);
-  assert.equal(checked.length, 3, 'three mode radios');
+  assert.equal(checked.length, 4, 'four mode radios');
   assert.ok(checked.includes('true'), 'exactly one selected mode is announced checked');
   assert.ok(checked.includes('false'), 'unselected modes are announced unchecked');
   assert.ok(!checked.includes(''), 'no radio renders aria-checked=""');

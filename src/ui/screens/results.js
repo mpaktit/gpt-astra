@@ -6,6 +6,7 @@ import { worldById, WORLDS } from '../../data/worlds.js';
 import { MODES } from '../../data/modes.js';
 import { speciesById, masteryLevel } from '../../data/species.js';
 import { cosmeticById } from '../../data/cosmetics.js';
+import { divisionByElo } from '../../data/ranks.js';
 import { xpToNext } from '../../meta/profile.js';
 import { PASS_XP_PER_TIER } from '../../data/economy.js';
 import { launch, freshSeed } from '../run.js';
@@ -46,7 +47,7 @@ export const results = {
         <p class="eyebrow">${w.name} · ${mode.name}${r.isBest ? html` <span class="pill-best">New best</span>` : ''}</p>
         <h1 class="res-line">${line}</h1>
         <div class="res-score"><b id="res-score">0</b><span class="muted">${r.prevBest && !r.isBest ? `Best ${fmt(r.prevBest)}` : ''}</span></div>
-        ${mode.id === 'voyage' ? html`<div class="res-stars">${stars(starCount, 3, 34)}${r.newStars ? html`<span class="pill-new">+${r.newStars} star${r.newStars > 1 ? 's' : ''}</span>` : ''}</div>` : ''}
+         ${mode.id === 'voyage' ? html`<div class="res-stars">${stars(starCount, 3, 34)}${r.newStars ? html`<span class="pill-new">+${r.newStars} star${r.newStars > 1 ? 's' : ''}</span>` : ''}</div>` : mode.id === 'ranked' ? html`<div class="res-rank"><span class="rank-badge" style="--rank-color:${divisionByElo(p.rank?.elo || 1000).color}">${divisionByElo(p.rank?.elo || 1000).icon}</span><b id="res-rank" class="${r.rankChange > 0 ? 'ranked-up' : r.rankChange < 0 ? 'ranked-down' : 'ranked-neutral'}">${r.rankChange > 0 ? '+' : ''}${r.rankChange}</b> <span class="muted">(${divisionByElo(p.rank?.elo || 1000).name} · ${p.rank?.streak ? `${p.rank.streak > 0 ? icon('fire', 14) : icon('snowflake', 14)} ${Math.abs(p.rank.streak)} streak` : 'no streak'})</span>${r.newDivision ? html`<span class="pill-new">Promoted to ${divisionByElo(p.rank?.elo || 1000).name}!</span>` : ''}</div>` : ''}
         <dl class="res-stats">
           <div><dt>Length</dt><dd>${s.maxLen}</dd></div>
           <div><dt>Time</dt><dd>${fmtTime(s.duration)}</dd></div>
@@ -99,6 +100,11 @@ export const results = {
     if (!R) return;
     countUp($('#res-score', root), R.summary.score, 1000);
     countUp($('#rr-sd', root), R.result.stardust, 900);
+    const rankEl = $('#res-rank', root);
+    if (rankEl && R.result.rankChange) {
+      countUp(rankEl, R.result.rankChange > 0 ? '+' + R.result.rankChange : R.result.rankChange, 600);
+      if (R.result.rankChange > 0) app.audio.play('levelUp');
+    }
     if (R.result.levelUps) setTimeout(() => app.audio.play('levelUp'), 500);
     const onKey = (e) => { if (e.code === 'Space' || e.code === 'Enter') { if (e.target.closest('a,button') && e.code === 'Enter') return; e.preventDefault(); results.actions.again(); } };
     document.addEventListener('keydown', onKey);

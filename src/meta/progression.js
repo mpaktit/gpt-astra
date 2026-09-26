@@ -3,6 +3,7 @@ import { worldById, WORLDS } from '../data/worlds.js';
 import { speciesById, masteryLevel } from '../data/species.js';
 import { MODES, dailyConfig } from '../data/modes.js';
 import { DAILY_RIFT_REWARD, PASS_TIERS, PASS_XP_PER_TIER } from '../data/economy.js';
+import { RANK_DIVISIONS } from '../data/ranks.js';
 import { addXp } from './profile.js';
 import { grant } from './wallet.js';
 import { unlockCosmetic } from './store.js';
@@ -10,11 +11,34 @@ import { progressMissions } from './missions.js';
 import { checkAchievements } from './achievements.js';
 import { dateKey } from './time.js';
 
+export const RANK_K = 32;
+
 export function starsFor(world, score) {
   return world.stars.reduce((n, goal) => (score >= goal ? n + 1 : n), 0);
 }
 
-export function unlockedWorlds(p) {
+export function worldRating(worldId) {
+  const worlds = WORLDS;
+  const idx = worlds.findIndex((w) => w.id === worldId);
+  return 1000 + (idx >= 0 ? idx * 60 : 0);
+}
+
+export function computeRankDelta(world, stars, scoredAny) {
+  const base = RANK_K / 2;
+  if (stars === 3) return RANK_K + Math.floor((worldRating(world.id) - 1000) / 20);
+  if (stars === 2) return Math.floor(base / 2);
+  if (stars >= 1) return scoredAny ? -Math.floor(base / 4) : -Math.floor(base / 3);
+  return -RANK_K;
+}
+
+export function divisionFor(elo, current) {
+  for (let i = RANK_DIVISIONS.length - 1; i >= 0; i--) {
+    if (elo >= RANK_DIVISIONS[i].elo && (!current || RANK_DIVISIONS[i].id !== current)) {
+      return RANK_DIVISIONS[i].id;
+    }
+  }
+  return null;
+}export function unlockedWorlds(p) {
   return WORLDS.filter((w) => p.level >= w.unlockLevel).map((w) => w.id);
 }
 
@@ -23,7 +47,7 @@ export function applyRun(p, run, now = Date.now()) {
   const mode = MODES[run.modeId] || MODES.voyage;
   const species = speciesById(run.speciesId);
   const seconds = Math.floor(run.duration / 1000);
-  const out = { stardust: 0, crystals: 0, xp: 0, passXp: 0, levelUps: 0, newStars: 0, prevStars: 0, isBest: false, dailyReward: null, masteryUp: null, unlocks: [], missions: [], achievements: [], worldsUnlocked: [] };
+  const out = { stardust: 0, crystals: 0, xp: 0, passXp: 0, levelUps: 0, newStars: 0, prevStars: 0, isBest: false, dailyReward: null, masteryUp: null, unlocks: [], missions: [], achievements: [], worldsUnlocked: [], rankChange: 0, newDivision: null };
   const beforeWorlds = unlockedWorlds(p);
 
   // Currency & XP
@@ -79,7 +103,7 @@ export function applyRun(p, run, now = Date.now()) {
     }
   }
 
-  // Lifetime stats
+   // Lifetime stats
   const st = p.stats;
   st.runs++;
   st.orbs += run.orbs; st.comets += run.comets; st.crystalsFound += run.crystals; st.powerups += run.powerups;
@@ -89,6 +113,42 @@ export function applyRun(p, run, now = Date.now()) {
   st.bestLength = Math.max(st.bestLength, run.maxLen || run.length);
   if (run.cause) st.deaths[run.cause] = (st.deaths[run.cause] || 0) + 1;
   p.last = { worldId: world.id, modeId: mode.id };
+
+  // Ranked rating
+  if (mode.id === 'ranked') {
+    const stars = starsFor(world, run.score);
+    out.prevStars = stars;
+    const prevBest = p.rank.best;
+    const delta = computeRankDelta(world, stars, run.score >= world.stars[0]);
+    p.rank.elo += delta;
+    p.rank.best = Math.max(p.rank.best, p.rank.elo);
+    p.rank.matches++;
+
+    if (delta > 0) {
+      p.rank.streak = Math.min((p.rank.streak || 0) + 1, 12);
+    } else if (delta < 0) {
+      p.rank.streak = Math.max((p.rank.streak || 0) - 1, -12);
+    } else {
+      p.rank.streak = 0;
+    }
+    p.rank.last = now;
+    out.rankChange = delta;
+    out.newDivision = divisionFor(p.rank.elo, p.rank.division);
+    if (out.newDivision && out.newDivision !== p.rank.division) {
+      p.rank.division = out.newDivision;
+    }
+    if (p.rank.best > prevBest) st.bestRank = Math.max(st.bestRank || 0, p.rank.best);
+
+    const streakBonus = Math.max(0, Math.min(Math.abs(p.rank.streak) - 2, 6));
+    const streakMul = 1 + streakBonus * 0.1;
+    const bonusStardust = Math.floor(out.stardust * (streakMul - 1));
+    out.stardust = Math.floor(out.stardust * streakMul);
+    out.xp = Math.floor(out.xp * streakMul);
+    out.passXp = Math.floor(out.passXp * streakMul);
+    if (bonusStardust > 0) {
+      grant(p, { stardust: bonusStardust }, 'ranked-streak', now);
+    }
+  }
 
   out.missions = progressMissions(p, { ...run, seconds, runs: 1, length: run.maxLen || run.length }, now);
   out.achievements = checkAchievements(p);

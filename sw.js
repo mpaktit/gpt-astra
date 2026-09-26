@@ -6,7 +6,7 @@ const SHELL = [
   './src/main.js',
   './src/core/rng.js', './src/core/ai.js', './src/core/engine.js',
   './src/data/rarity.js', './src/data/species.js', './src/data/worlds.js', './src/data/modes.js', './src/data/cosmetics.js',
-  './src/data/economy.js', './src/data/pass.js', './src/data/missions.js', './src/data/achievements.js',
+  './src/data/economy.js', './src/data/pass.js', './src/data/missions.js', './src/data/achievements.js', './src/data/ranks.js',
   './src/meta/time.js', './src/meta/profile.js', './src/meta/save.js', './src/meta/wallet.js', './src/meta/store.js',
   './src/meta/progression.js', './src/meta/missions.js', './src/meta/achievements.js', './src/meta/pass.js', './src/meta/login.js',
   './src/render/color.js', './src/render/fx.js', './src/render/renderer.js',

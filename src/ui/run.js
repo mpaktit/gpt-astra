@@ -15,7 +15,7 @@ export function currentSelection() {
   app.sel = app.sel || { worldId: p.last.worldId, modeId: p.last.modeId };
   const unlocked = unlockedWorlds(p);
   if (!unlocked.includes(app.sel.worldId)) app.sel.worldId = 'nebula';
-  if (!['voyage', 'blitz', 'daily'].includes(app.sel.modeId)) app.sel.modeId = 'voyage';
+  if (!['voyage', 'blitz', 'daily', 'ranked'].includes(app.sel.modeId)) app.sel.modeId = 'voyage';
   return app.sel;
 }
 

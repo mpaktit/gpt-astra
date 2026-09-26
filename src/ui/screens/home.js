@@ -4,6 +4,7 @@ import { bar, reward, stars, kbd, rarityChip } from '../components.js';
 import { app, commit, reveal, toast, fail } from '../app.js';
 import { WORLDS, worldById } from '../../data/worlds.js';
 import { MODES, MODIFIERS, dailyConfig } from '../../data/modes.js';
+import { divisionByElo } from '../../data/ranks.js';
 import { speciesById } from '../../data/species.js';
 import { LOGIN_REWARDS, PASS_XP_PER_TIER, PASS_TIERS, DAILY_RIFT_REWARD } from '../../data/economy.js';
 import { missionText } from '../../meta/missions.js';
@@ -96,7 +97,7 @@ export const home = {
             <p class="eyebrow">Sector ${w.order} · ${mode.name}${isDaily ? ` · ${MODIFIERS[daily.modifier].name}` : ''}</p>
             <h2 class="h-world">${w.name}</h2>
             ${dailyLocked ? html`<p class="daily-preview">${icon('lock', 14)} Sector preview &mdash; unlocks at level ${w.unlockLevel}. This rift still counts.</p>` : ''}
-            <p class="muted blurb">${isDaily ? MODIFIERS[daily.modifier].desc + ' Same seed for every pilot today.' : mode.id === 'blitz' ? mode.desc : w.blurb}</p>
+            <p class="muted blurb">${isDaily ? MODIFIERS[daily.modifier].desc + ' Same seed for every pilot today.' : mode.id === 'blitz' ? mode.desc : mode.id === 'ranked' ? mode.desc + ` Current rating: ${p.rank?.elo || 1000} (${divisionByElo(p.rank?.elo || 1000).name}). Streak: ${p.rank?.streak || 0}.` : w.blurb}</p>
             <div class="chips">
               ${w.hazards.length ? w.hazards.map((h) => html`<span class="chip-s">${HAZARD_LABEL[h]}</span>`) : html`<span class="chip-s">No hazards</span>`}
               <span class="chip-s">${w.wrap ? 'Edges loop' : 'Solid edges'}</span>
@@ -112,8 +113,9 @@ export const home = {
             <span><b>${sp.name}</b> ${rarityChip(sp.rarity)}<small>${sp.ability.name}: ${sp.ability.desc}</small></span>
             ${icon('chevron', 18)}
           </a>
+          ${mode.id === 'ranked' ? html`<div class="rank-preview">${icon('trophy', 16)}<span class="rank-badge" style="--rank-color:${divisionByElo(p.rank?.elo || 1000).color}">${divisionByElo(p.rank?.elo || 1000).icon}</span><b>${p.rank?.elo || 1000}</b> <span class="muted">(${divisionByElo(p.rank?.elo || 1000).name}) · ${p.rank?.matches || 0} matches</span></div>` : ''}
 
-          <button class="btn primary launch-btn" data-action="launch">Launch ${kbd('Space')}</button>
+          <button class="btn primary launch-btn" data-action="launch">${firstTime ? 'Launch mission' : 'Quick play'} ${kbd('Space')}</button>
           <p class="best-line">${best ? html`Best here: <b>${fmt(best)}</b>` : 'No runs here yet. Make history.'}</p>
         </div>
       </div>

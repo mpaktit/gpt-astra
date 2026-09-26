@@ -183,10 +183,12 @@ kbd {
 .node.locked .node-label { fill: var(--ink-3); } .node.locked .node-sub { fill: var(--ink-3); letter-spacing: 0.04em; }
 
 .launch { display: flex; flex-direction: column; gap: var(--space-m); }
-.modes { display: grid; grid-template-columns: repeat(3, 1fr); padding: 4px; background: var(--paper-2); border-radius: 14px; }
+.modes { display: grid; grid-template-columns: repeat(4, 1fr); padding: 4px; background: var(--paper-2); border-radius: 14px; }
 .modes button { height: 40px; border-radius: 10px; font-weight: 700; font-size: 0.9375rem; color: var(--ink-2); position: relative; transition: background 0.2s var(--ease), color 0.2s; }
 .modes button:hover { color: var(--ink); }
 .modes button[aria-checked="true"] { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
+.rank-preview { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; background: var(--violet-soft); margin: 4px 0; }
+.rank-preview .rank-badge { width: 26px; height: 26px; font-size: 14px; }
 .dot-new { position: absolute; top: 8px; right: 10px; width: 7px; height: 7px; border-radius: 50%; background: var(--coral); }
 .preview-wrap { position: relative; display: grid; place-items: center; border-radius: 18px; overflow: hidden; background: var(--paper-2); min-height: 170px; padding: 10px; }
 .preview-wrap canvas { border-radius: 12px; box-shadow: var(--shadow-lg); }
@@ -272,6 +274,13 @@ body[data-route="play"] .view.enter > * { animation: none; }
 .ability.ready .ab-ring { background: var(--indigo); }
 .ability.ready .ab-ring::after { background: var(--indigo); box-shadow: inset 0 0 0 3px var(--paper); }
 .ability.active .ab-ring::after { background: var(--gold); }
+.ability.charging { background: var(--violet-soft); animation: pulse 2s ease-in-out infinite; }
+.ability.charging .ab-ring { box-shadow: 0 0 16px var(--violet), inset 0 0 8px var(--violet); }
+.ability.charging .ab-ring::after {
+  background: conic-gradient(var(--violet) calc(var(--cp) * 360deg), var(--paper-3) 0);
+  box-shadow: inset 0 0 0 3px var(--paper), 0 0 12px var(--violet);
+  animation: none;
+}
 .ab-txt b { display: block; font-size: 1rem; font-weight: 750; } .ab-txt small { font-size: 0.75rem; color: var(--ink-3); }
 .effects { list-style: none; display: flex; flex-direction: column; gap: 10px; }
 .fx { display: grid; gap: 6px; font-size: 0.875rem; font-weight: 700; animation: enter 0.3s var(--ease); }
@@ -282,6 +291,12 @@ body[data-route="play"] .view.enter > * { animation: none; }
 .pad { display: none; }
 
 /* ---------------------------------------------------------------- results */
+.res-rank { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+.rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; background: var(--rank-color, var(--ink-2)); color: white; flex-shrink: 0; }
+.ranked-up { color: var(--cyan); font-weight: 700; }
+.ranked-down { color: var(--coral); font-weight: 700; }
+.ranked-neutral { color: var(--ink-2); font-weight: 700; }
+.res-rank .pill-new { margin-left: auto; }
 .results { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, 1fr); gap: var(--space-2xl); align-items: start; }
 .res-main { display: flex; flex-direction: column; gap: var(--space-m); }
 .res-line { font-size: clamp(2.25rem, 5vw, 4rem); font-weight: 800; letter-spacing: -0.045em; line-height: 0.95; }
@@ -460,6 +475,7 @@ select:focus, input:focus, textarea:focus { border-color: var(--indigo); outline
 .profile-grid .h-sub { margin-bottom: var(--space-m); }
 .career { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--space-l) var(--space-m); margin-bottom: var(--space-2xl); }
 .career dd { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; text-transform: capitalize; }
+.rank-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .sectors { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .sectors th { text-align: left; font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); padding: 8px 0; }
 .sectors td { padding: 10px 0; border-top: 1px solid var(--paper-3); }

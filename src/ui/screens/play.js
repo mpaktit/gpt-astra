@@ -193,6 +193,12 @@ export const play = {
       if (cache.ready !== ready) { cache.ready = ready; H.ab.classList.toggle('ready', ready); }
       const active = s.t < s.ability.activeUntil;
       if (cache.active !== active) { cache.active = active; H.ab.classList.toggle('active', active); }
+      const charging = s.ability.charging && state === 'play';
+      if (cache.charging !== charging) { cache.charging = charging; H.ab.classList.toggle('charging', charging); }
+      if (charging) {
+        const cp = 1 - (s.ability.chargeUntil - s.t) / 800;
+        H.abRing.style.setProperty('--cp', Math.max(0, Math.min(1, cp)).toFixed(3));
+      }
       // effect chips
       const chips = [];
       if (phasing(s)) chips.push(['phase', 'Phase', (s.effects.phase - s.t) / 6000]);

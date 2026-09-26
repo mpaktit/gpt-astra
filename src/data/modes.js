@@ -3,7 +3,8 @@ import { WORLDS } from './worlds.js';
 
 export const MODES = {
   voyage: { id: 'voyage', name: 'Voyage', desc: 'Survive, grow, chase the three star goals.', orbs: 1, timer: 0, speedMul: 1, rewardMul: 1 },
-  blitz:  { id: 'blitz',  name: 'Blitz',  desc: '60 seconds, three orbs at once. Comets add time.', orbs: 3, timer: 60, speedMul: 0.9, rewardMul: 1.1 },
+  blitz:  { id: 'blitz',  name: 'Blitz',  desc: '60 seconds. Three orbs at once. Comets add time. Score explodes.', orbs: 3, timer: 60, speedMul: 0.92, rewardMul: 1.15 },
+  ranked: { id: 'ranked', name: 'Ranked', desc: 'Same sector, same rules, rated. Win streaks stack rewards.', orbs: 1, timer: 0, speedMul: 1, rewardMul: 1.2 },
   daily:  { id: 'daily',  name: 'Daily Rift', desc: 'Same seed for every pilot today, plus a twist.', orbs: 1, timer: 0, speedMul: 1, rewardMul: 1.25 },
 };
 
@@ -13,6 +14,8 @@ export const MODIFIERS = {
   shower:    { id: 'shower',    name: 'Comet Shower', desc: 'Comets fall three times as often.' },
   glass:     { id: 'glass',     name: 'Glass Cannon', desc: 'No shields or phase pickups. Score x1.25.' },
   giant:     { id: 'giant',     name: 'Giant',        desc: 'Start at length 12. Good luck turning.' },
+  storm:     { id: 'storm',     name: 'Ion Storm',      desc: 'Lightning strikes more often, severing your tail.' },
+  rival:     { id: 'rival',     name: 'Rival Pack',     desc: 'Two rival serpents hunt the same prey.' },
 };
 
 /**

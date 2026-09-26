@@ -51,7 +51,7 @@ export const SPECIES = [
     id: 'solar', name: 'Solar Leviathan', rarity: 'legendary', origin: 'Born inside a star',
     blurb: 'Ancient, enormous, radiant. Breathes a lance of fire that eats everything in its path.',
     stats: { speed: 1.04, yield: 1.15, startLen: 6, buffer: 2 },
-    ability: { id: 'flare', name: 'Solar Lance', desc: 'Fire an 8-cell beam: collects pickups, melts rocks and storms, kills rivals.', cooldown: 15000, duration: 0 },
+    ability: { id: 'flare', name: 'Solar Lance', desc: 'Hold E to charge, steer the aim, then release: a 10-cell, 1-cell-wide beam that vaporizes everything in its path.', cooldown: 15000, duration: 0 },
     passive: { id: 'radiant', desc: 'Starts longer. Earns 15% more Stardust.' },
     price: { stardust: 30000, crystals: 2400 },
     palette: { head: [0.68, 0.18, 55], tail: [0.62, 0.22, 25] },

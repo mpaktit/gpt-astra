@@ -77,9 +77,14 @@ export const pass = {
       app.audio.play('buy');
       const cache = res.results.find((x) => x.kind === 'cache');
       const cos = res.results.find((x) => x.kind === 'cosmetic');
+      const isMilestone = Number(d.tier) % 10 === 0;
+      if (isMilestone) {
+        app.audio.play('levelUp');
+        toast({ title: `Tier ${d.tier} - Milestone!`, body: 'Major reward unlocked', tone: 'gold', icon: 'sparkle', ms: 2400 });
+      }
       if (cache?.ok) reveal({ item: cache.item, rarity: cache.rarity, dup: cache.dup, shards: cache.shards, title: `Tier ${d.tier} cache`, onEquip: () => commit((p) => { p.equipped[cache.item.kind] = cache.item.id; }) });
       else if (cos?.item) reveal({ item: cos.item, rarity: cos.item.rarity, dup: cos.dup, shards: cos.shards, title: `Tier ${d.tier}`, onEquip: () => commit((p) => { p.equipped[cos.item.kind] = cos.item.id; }) });
-      else toast({ title: `Tier ${d.tier} claimed`, tone: 'gold', icon: 'gift' });
+      else if (!isMilestone) toast({ title: `Tier ${d.tier} claimed`, tone: 'gold', icon: 'gift' });
     },
     'claim-all': () => {
       const res = commit((p) => claimAll(p));

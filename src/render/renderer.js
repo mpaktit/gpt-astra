@@ -23,6 +23,7 @@ export function createRenderer(canvas) {
   let settings = { showGrid: true, reducedMotion: false, colorblind: false };
   let shake = 0, headPulse = 0, flash = 0, flashColor = C.white;
   let bulges = [], beams = [];
+  let flareCharge = 0, flareDir = null;
 
   function configure(o) {
     world = o.world;
@@ -34,7 +35,7 @@ export function createRenderer(canvas) {
     finale = o.finaleId ? cosmeticById(o.finaleId) : null;
     settings = { ...settings, ...(o.settings || {}) };
     fx.reduced = !!settings.reducedMotion;
-    fx.clear(); bulges = []; beams = []; shake = 0; flash = 0;
+    fx.clear(); bulges = []; beams = []; shake = 0; flash = 0; flareCharge = 0; flareDir = null;
     buildBg();
   }
 
@@ -113,7 +114,17 @@ export function createRenderer(canvas) {
           const col = ok(map[e.id] || C.white);
           fx.ring(cx, cy, col, 650, e.radius ? e.radius + 0.5 : 2.5);
           if (e.id === 'supernova') { flash = 0.5; flashColor = C.orbHi; shake = Math.max(shake, 8); fx.burst(cx, cy, col, 40, 2.2); }
-          if (e.id === 'flare') { beams.push({ cells: e.cells, from: { x: cx, y: cy }, until: performance.now() + 380 }); shake = Math.max(shake, 5); }
+          if (e.id === 'flare' && e.charging) { flareCharge = performance.now(); fx.ring(cx, cy, ok(C.comet), 800, 2); }
+          if (e.id === 'flare' && e.cells) {
+            beams.push({ cells: e.cells, from: { x: cx, y: cy }, until: performance.now() + 380 });
+            shake = Math.max(shake, 5);
+            const mid = Math.floor(e.cells.length / 2);
+            for (const [x, y] of e.cells) {
+              fx.add({ x, y, max: 500, r: 0.25, shape: 'soft', color: ok(C.comet, 0.8), vx: 0, vy: 0 });
+            }
+            const head = e.cells[e.cells.length - 1];
+            if (head) { fx.burst(head.x, head.y, ok(C.comet, 0.9), 20, 1.8); flash = 0.3; flashColor = C.comet; }
+          }
           if (e.id === 'singularity') fx.ring(cx, cy, ok(C.shield, 0.6), 900, 7);
           break;
         }
@@ -561,10 +572,106 @@ export function createRenderer(canvas) {
     for (const b of beams) {
       if (!b.cells.length) continue;
       const k = (b.until - now) / 380;
-      ctx.strokeStyle = ok(C.comet, 0.9 * k); ctx.lineCap = 'round'; ctx.lineWidth = cell * 0.7 * k;
+      const col = ok(C.comet, 0.7 * k);
+      ctx.save();
+      ctx.strokeStyle = col; ctx.lineCap = 'round'; ctx.lineWidth = cell * 0.9 * k;
+      ctx.shadowBlur = cell * 1.5; ctx.shadowColor = col;
       const last = b.cells[b.cells.length - 1];
       ctx.beginPath(); ctx.moveTo(b.from.x * cell, b.from.y * cell); ctx.lineTo((last[0] + 0.5) * cell, (last[1] + 0.5) * cell); ctx.stroke();
-      ctx.strokeStyle = ok(C.white, k); ctx.lineWidth = cell * 0.25 * k; ctx.stroke();
+      ctx.strokeStyle = ok(C.white, k); ctx.lineWidth = cell * 0.35 * k; ctx.shadowBlur = 0;
+      ctx.beginPath(); ctx.moveTo(b.from.x * cell, b.from.y * cell); ctx.lineTo((last[0] + 0.5) * cell, (last[1] + 0.5) * cell); ctx.stroke();
+      for (let i = 0; i < b.cells.length; i++) {
+        if ((now + i * 30) % 120 < 30) {
+          const [x, y] = b.cells[i];
+          fx.add({ x, y, max: 400, r: 0.18, shape: 'soft', color: col, vx: 0, vy: 0 });
+        }
+      }
+      ctx.restore();
+    }
+  }
+
+  function beamCellsAt(s, x, y, d, len) {
+    const cells = [];
+    let c = { x, y };
+    for (let i = 0; i < len; i++) {
+      let nx = c.x + d.x, ny = c.y + d.y;
+      if (s.wrap) { nx = (nx + s.w) % s.w; ny = (ny + s.h) % s.h; }
+      else if (nx < 0 || ny < 0 || nx >= s.w || ny >= s.h) break;
+      const k = ny * s.w + nx;
+      if (s.walls.has(k) || s.hole.has(k)) break;
+      cells.push([nx, ny]);
+      c = { x: nx, y: ny };
+    }
+    return cells;
+  }
+
+  function drawChargePreview(s, now) {
+    if (!s.ability.charging || !flareCharge) return;
+    const hd = s.snake[0];
+    const cells = beamCellsAt(s, hd.x, hd.y, s.dir, 10);
+    if (!cells.length) return;
+    const k = 0.3 + 0.7 * Math.min(1, (now - flareCharge) / 800);
+    const chargeColor = ok(C.comet, 0.8 * k);
+
+    ctx.save();
+    ctx.strokeStyle = chargeColor;
+    ctx.lineCap = 'round';
+    ctx.lineWidth = Math.max(3, cell * 0.7);
+    ctx.shadowBlur = cell * 1.5;
+    ctx.shadowColor = chargeColor;
+    ctx.setLineDash([cell * 0.25, cell * 0.15]);
+
+    const t = now - flareCharge;
+    const pulse = 0.5 + 0.5 * Math.sin(t / 200);
+    ctx.globalAlpha = k * (0.6 + 0.4 * pulse);
+    ctx.beginPath();
+    const first = cells[0];
+    ctx.moveTo((first[0] + 0.5) * cell, (first[1] + 0.5) * cell);
+    for (let i = 1; i < cells.length; i++) {
+      ctx.lineTo((cells[i][0] + 0.5) * cell, (cells[i][1] + 0.5) * cell);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+
+    const perpIdx = s.dir.x === 0 ? 'x' : 'y';
+    for (const [x, y] of cells) {
+      if (perpIdx === 'x') {
+        for (const ox of [-1, 1]) {
+          const nx = x + ox, ny = y;
+          if (!s.walls.has(ny * s.w + nx) && !s.hole.has(ny * s.w + nx)) {
+            const px = (nx + 0.5) * cell, py = (ny + 0.5) * cell;
+            fx.add({ x: nx + 0.5, y: ny + 0.5, max: 300, r: 0.2, shape: 'soft', color: ok(C.comet, 0.4 * k), vx: 0, vy: 0 });
+            ctx.fillStyle = chargeColor;
+            ctx.fillRect(px - cell * 0.2, py - cell * 0.2, cell * 0.4, cell * 0.4);
+          }
+        }
+      } else {
+        for (const oy of [-1, 1]) {
+          const nx = x, ny = y + oy;
+          if (!s.walls.has(ny * s.w + nx) && !s.hole.has(ny * s.w + nx)) {
+            const px = (nx + 0.5) * cell, py = (ny + 0.5) * cell;
+            fx.add({ x: nx + 0.5, y: ny + 0.5, max: 300, r: 0.2, shape: 'soft', color: ok(C.comet, 0.4 * k), vx: 0, vy: 0 });
+            ctx.fillStyle = chargeColor;
+            ctx.fillRect(px - cell * 0.2, py - cell * 0.2, cell * 0.4, cell * 0.4);
+          }
+        }
+      }
+    }
+    ctx.restore();
+
+    for (let i = 0; i < cells.length; i++) {
+      if ((t + i * 50) % 180 < 40) {
+        const [x, y] = cells[i];
+        fx.add({ x: x + 0.5, y: y + 0.5, max: 500, r: 0.22, shape: 'soft', color: ok(C.comet, 0.7 * k), vx: s.dir.x * 0.02, vy: s.dir.y * 0.02 });
+      }
+    }
+    for (let i = 0; i < 8; i++) {
+      const frac = (t + i * 60) % 400 / 400;
+      if (frac > 0.7) continue;
+      const [x, y] = cells[0];
+      const spread = (frac - 0.5) * 0.4;
+      fx.add({ x: x + 0.5 + (Math.random() - 0.5) * spread, y: y + 0.5 + (Math.random() - 0.5) * spread, max: 300, r: 0.15, shape: 'soft', color: ok(C.comet, 0.9 * k), vx: 0, vy: 0 });
     }
   }
 
@@ -630,6 +737,7 @@ export function createRenderer(canvas) {
     serpent(pts, skin, now, { ghost: ghost && !ending, flashing, dead: s.over && !s.alive, dir: s.dir, sp: species, pulse: headPulse, shield: s.shield, magnetR });
 
     drawBeams(now);
+    drawChargePreview(s, now);
     drawParticles();
     ctx.restore();
 

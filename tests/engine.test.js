@@ -118,12 +118,16 @@ test('abilities: every species can fire, cooldown blocks spam', () => {
   }
 });
 
-test('Solar Lance collects pickups in a line', () => {
+test('Solar Lance charges then fires a beam that collects pickups', () => {
   const s = createGame({ worldId: 'nebula', speciesId: 'solar', seed: 10 });
   const hd = s.snake[0];
-  s.items = [{ id: 1, type: 'orb', x: hd.x + 5, y: hd.y, born: 0, life: Infinity }];
+  s.items = [{ id: 1, type: 'orb', x: hd.x + 10, y: hd.y, born: 0, life: Infinity }];
   useAbility(s); tick(s);
-  assert.equal(s.stats.orbs, 1);
+  assert.equal(s.ability.charging, true, 'starts charging');
+  let i = 0;
+  while (s.ability.charging && i < 20 && !s.over) { tick(s); i++; }
+  assert.equal(s.stats.orbs, 1, 'charged beam collected the orb');
+  assert.equal(s.ability.charging, false, 'no longer charging');
 });
 
 test('Afterburn speeds up the snake', () => {

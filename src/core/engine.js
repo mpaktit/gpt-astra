@@ -27,6 +27,9 @@ export const COMBO_WINDOW = 1900;
 export const MAX_COMBO = 8;
 const EFFECT_MS = { phase: 6000, slow: 6000, magnet: 8000 };
 const SPECIAL_LIFE = 7000;
+const FLARE_CHARGE = 800;
+const FLARE_RANGE = 10;
+const FLARE_WIDTH = 1;  // cells to each side of the beam
 
 // ---------------------------------------------------------------- setup
 
@@ -52,7 +55,7 @@ export function createGame(opts = {}) {
     rival: null,
     score: 0, combo: 1, maxCombo: 1, lastEat: -1e9, eaten: 0, timeBonus: 0,
     effects: { phase: 0, slow: 0, magnet: 0 }, shield: 0,
-    ability: { cdUntil: 0, activeUntil: 0, strongMagnetUntil: 0 },
+    ability: { cdUntil: 0, activeUntil: 0, strongMagnetUntil: 0, charging: false, chargeUntil: 0, aimDir: null },
     pendingAbility: false, reviveUsed: false, history: [],
     stats: { orbs: 0, comets: 0, crystals: 0, powerups: 0, abilityUses: 0, maxLen: 0, rivals: 0, severs: 0, shieldsUsed: 0 },
     inputs: [], events: [],
@@ -154,8 +157,9 @@ export const boosting = (s) => s.species.ability.id === 'boost' && s.t < s.abili
 export function ventState(s, v) {
   if (s.t < v.suppressUntil) return 'cool';
   const p = (s.t + v.offset) % v.period;
-  if (p < 2400) return 'cool';
-  if (p < 3300) return 'warn';
+  const cool = Math.max(1200, 2400 - Math.floor(s.t / 6000) * 200);
+  if (p < cool) return 'cool';
+  if (p < cool + 900) return 'warn';
   return 'hot';
 }
 
@@ -192,7 +196,7 @@ export function hazardAt(s, x, y) {
 }
 
 export function interval(s) {
-  let iv = s.world.baseInterval * s.mode.speedMul - Math.min(s.eaten, 45) * 1.6;
+  let iv = s.world.baseInterval * s.mode.speedMul - Math.min(s.eaten, 60) * 1.3;
   iv = Math.max(60, iv) / s.species.stats.speed;
   if (s.modifier === 'overdrive') iv *= 0.8;
   if (slowed(s)) iv *= 1.6;
@@ -280,6 +284,9 @@ export function tick(s) {
   if (s.rival) s.rival.prev = s.rival.body.map((p) => ({ ...p }));
 
   moveSnake(s);
+  if (!s.over && s.ability.charging && s.t >= s.ability.chargeUntil) {
+    fireFlare(s);
+  }
   if (!s.over) {
     updateRocks(s);
     updateStorms(s);
@@ -450,29 +457,53 @@ function activateAbility(s) {
       break;
     }
     case 'flare': {
-      const cells = [];
-      let c = { x: hd.x, y: hd.y };
-      for (let i = 0; i < 8; i++) {
-        c = nextCell(s, c.x, c.y, s.dir);
-        if (!c) break;
-        const k = key(s, c.x, c.y);
-        if (s.walls.has(k) || s.hole.has(k)) break;
-        cells.push([c.x, c.y]);
-      }
-      const hit = (x, y) => cells.some(([a, b]) => a === x && b === y);
-      const grabbed = s.items.filter((it) => hit(it.x, it.y));
-      s.items = s.items.filter((it) => !hit(it.x, it.y));
-      s.rocks = s.rocks.filter((r) => !rockCellsOf(r).some(([x, y]) => hit(x, y)));
-      rebuildRockCells(s);
-      s.storms = s.storms.filter((st) => !st.cells.some(([x, y]) => hit(x, y)));
-      if (s.rival && s.rival.alive && s.rival.body.some((p) => hit(p.x, p.y))) killRival(s, 'flare');
-      e.cells = cells;
+      // Charged shot: player steer during charge, beam fires in whatever direction is current.
+      s.ability.charging = true;
+      s.ability.chargeUntil = s.t + FLARE_CHARGE;
+      s.ability.activeUntil = s.t + FLARE_CHARGE;
+      e.charging = true;
       s.events.push(e);
-      for (const it of grabbed) eat(s, it);
       return;
     }
   }
   s.events.push(e);
+}
+
+function fireFlare(s) {
+  const hd = s.snake[0];
+  const d = s.dir;
+  s.ability.charging = false;
+  const cells = [];
+  let c = { x: hd.x, y: hd.y };
+  for (let i = 0; i < FLARE_RANGE; i++) {
+    c = nextCell(s, c.x, c.y, d);
+    if (!c) break;
+    const k = key(s, c.x, c.y);
+    if (s.walls.has(k) || s.hole.has(k)) break;
+    cells.push([c.x, c.y]);
+    const perp = d.x === 0 ? [DIRS.left, DIRS.right] : [DIRS.up, DIRS.down];
+    for (const pd of perp) {
+      const pc = nextCell(s, c.x, c.y, pd);
+      if (pc && !s.walls.has(key(s, pc.x, pc.y)) && !s.hole.has(key(s, pc.x, pc.y))) cells.push([pc.x, pc.y]);
+    }
+  }
+  const seen = new Set();
+  const unique = cells.filter(([x, y]) => {
+    const k = `${x},${y}`;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  const hit = (x, y) => unique.some(([a, b]) => a === x && b === y);
+  const grabbed = s.items.filter((it) => hit(it.x, it.y));
+  s.items = s.items.filter((it) => !hit(it.x, it.y));
+  s.rocks = s.rocks.filter((r) => !rockCellsOf(r).some(([x, y]) => hit(x, y)));
+  if (s.rocks.length) rebuildRockCells(s);
+  s.storms = s.storms.filter((st) => !st.cells.some(([x, y]) => hit(x, y)));
+  if (s.rival && s.rival.alive && s.rival.body.some((p) => hit(p.x, p.y))) killRival(s, 'flare');
+  const e = { type: 'ability', id: 'flare', x: hd.x, y: hd.y, cells: unique };
+  s.events.push(e);
+  for (const it of grabbed) eat(s, it);
 }
 
 // ---------------------------------------------------------------- hazards

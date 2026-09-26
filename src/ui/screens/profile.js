@@ -6,6 +6,7 @@ import { WORLDS } from '../../data/worlds.js';
 import { MODES } from '../../data/modes.js';
 import { SPECIES, speciesById, masteryLevel, MASTERY_XP } from '../../data/species.js';
 import { TITLES, cosmeticById } from '../../data/cosmetics.js';
+import { divisionByElo } from '../../data/ranks.js';
 import { xpToNext, cleanName } from '../../meta/profile.js';
 import { owns } from '../../meta/store.js';
 
@@ -39,6 +40,7 @@ export const profile = {
           <dl class="career">
             <div><dt>Runs</dt><dd>${fmt(st.runs)}</dd></div>
             <div><dt>Flight time</dt><dd>${fmtTime(st.playMs)}</dd></div>
+            <div><dt>Rank</dt><dd class="rank-row"><span class="rank-badge" style="--rank-color:${divisionByElo(p.rank?.elo || 1000).color}">${divisionByElo(p.rank?.elo || 1000).icon}</span><b>${p.rank?.elo || 1000}</b> <span class="muted small">(${divisionByElo(p.rank?.elo || 1000).name})</span>${p.rank?.streak ? html`<span class="chip-s">${p.rank.streak > 0 ? '🔥' : '❄️'} ${Math.abs(p.rank.streak)} streak</span>` : ''}</dd></div>
             <div><dt>Best score</dt><dd>${fmt(st.bestScore)}</dd></div>
             <div><dt>Best combo</dt><dd>×${st.bestCombo}</dd></div>
             <div><dt>Longest</dt><dd>${st.bestLength}</dd></div>
@@ -51,8 +53,8 @@ export const profile = {
 
           <h2 class="h-sub">Sectors</h2>
           <table class="sectors">
-            <thead><tr><th>Sector</th><th>Stars</th><th>Voyage</th><th>Blitz</th></tr></thead>
-            <tbody>${WORLDS.map((w) => html`<tr class="${p.level >= w.unlockLevel ? '' : 'locked'}"><td>${w.name}</td><td>${stars(p.stars[w.id] || 0, 3, 14)}</td><td>${fmt(p.best['voyage:' + w.id] || 0)}</td><td>${fmt(p.best['blitz:' + w.id] || 0)}</td></tr>`)}</tbody>
+            <thead><tr><th>Sector</th><th>Stars</th><th>Voyage</th><th>Blitz</th><th>Ranked</th></tr></thead>
+            <tbody>${WORLDS.map((w) => html`<tr class="${p.level >= w.unlockLevel ? '' : 'locked'}"><td>${w.name}</td><td>${stars(p.stars[w.id] || 0, 3, 14)}</td><td>${fmt(p.best['voyage:' + w.id] || 0)}</td><td>${fmt(p.best['blitz:' + w.id] || 0)}</td><td>${fmt(p.best['ranked:' + w.id] || 0)}</td></tr>`)}</tbody>
           </table>
         </section>
 
@@ -64,7 +66,7 @@ export const profile = {
           })}</ul>
 
           <div class="sec-head"><h2 class="h-sub">Personal leaderboard</h2>
-            <select data-change="board" aria-label="Leaderboard">${WORLDS.flatMap((w) => ['voyage', 'blitz'].map((m) => html`<option value="${m}:${w.id}" ${ui.board === `${m}:${w.id}` ? 'selected' : ''}>${w.name} · ${MODES[m].name}</option>`))}</select>
+              <select data-change="board" aria-label="Leaderboard">${WORLDS.flatMap((w) => ['voyage', 'blitz', 'ranked'].map((m) => html`<option value="${m}:${w.id}" ${ui.board === `${m}:${w.id}` ? 'selected' : ''}>${w.name} · ${MODES[m].name}</option>`))}</select>
           </div>
           ${lb.length ? html`<ol class="lb">${lb.map((e, i) => html`<li><span class="lb-rank">${i + 1}</span><b>${fmt(e.score)}</b><small class="muted">${speciesById(e.species).name} · ${new Date(e.at).toLocaleDateString()}</small></li>`)}</ol>`
             : html`<p class="muted">No runs here yet. Global leaderboards arrive with the server launch.</p>`}
