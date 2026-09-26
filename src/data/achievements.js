@@ -1,0 +1,22 @@
+// Achievements. `test(profile)` must be pure. Rewards are mostly crystals: the honest free path to premium.
+export const ACHIEVEMENTS = [
+  { id: 'first-flight', name: 'First Flight', desc: 'Finish your first run.', reward: { crystals: 10 }, test: (p) => p.stats.runs >= 1 },
+  { id: 'score-1k', name: 'Four Digits', desc: 'Score 1,000 in one run.', reward: { crystals: 15 }, test: (p) => p.stats.bestScore >= 1000 },
+  { id: 'score-3k', name: 'Luminous', desc: 'Score 3,000 in one run.', reward: { crystals: 30 }, test: (p) => p.stats.bestScore >= 3000 },
+  { id: 'score-6k', name: 'Supermassive', desc: 'Score 6,000 in one run.', reward: { crystals: 60, cosmetic: 'void-walker' }, test: (p) => p.stats.bestScore >= 6000 },
+  { id: 'combo-8', name: 'Combo Architect', desc: 'Hit a x8 combo.', reward: { crystals: 25, cosmetic: 'combo-architect' }, test: (p) => p.stats.bestCombo >= 8 },
+  { id: 'long-50', name: 'Leviathan', desc: 'Grow to length 50.', reward: { crystals: 30 }, test: (p) => p.stats.bestLength >= 50 },
+  { id: 'crystal-1', name: 'Shiny', desc: 'Find a Void Crystal mid-run.', reward: { crystals: 10 }, test: (p) => p.stats.crystalsFound >= 1 },
+  { id: 'rival-1', name: 'Outmaneuvered', desc: 'Defeat a rival serpent.', reward: { crystals: 20 }, test: (p) => p.stats.rivals >= 1 },
+  { id: 'rival-25', name: 'Rival Breaker', desc: 'Defeat 25 rivals.', reward: { crystals: 50, cosmetic: 'rival-breaker' }, test: (p) => p.stats.rivals >= 25 },
+  { id: 'stars-3', name: 'Constellation', desc: 'Earn 3 stars in any sector.', reward: { crystals: 20 }, test: (p) => Object.values(p.stars).some((v) => v >= 3) },
+  { id: 'stars-all', name: 'Sector Sovereign', desc: 'Earn 3 stars in every sector.', reward: { crystals: 100, cosmetic: 'sovereign' }, test: (p) => Object.keys(p.stars).length >= 6 && Object.values(p.stars).every((v) => v >= 3) },
+  { id: 'runs-100', name: 'Frequent Flyer', desc: 'Fly 100 runs.', reward: { crystals: 40 }, test: (p) => p.stats.runs >= 100 },
+  { id: 'cache-1', name: 'Unboxed', desc: 'Open your first cache.', reward: { crystals: 5 }, test: (p) => p.caches.opened >= 1 },
+  { id: 'species-3', name: 'Collector', desc: 'Own 3 species.', reward: { crystals: 30 }, test: (p) => p.owned.species.length >= 3 },
+  { id: 'species-all', name: 'Menagerie', desc: 'Own every species.', reward: { crystals: 150 }, test: (p) => p.owned.species.length >= 6 },
+  { id: 'level-10', name: 'Pilot', desc: 'Reach pilot level 10.', reward: { crystals: 25 }, test: (p) => p.level >= 10 },
+  { id: 'level-25', name: 'Veteran', desc: 'Reach pilot level 25.', reward: { crystals: 60 }, test: (p) => p.level >= 25 },
+  { id: 'mastery-5', name: 'Ascendant', desc: 'Reach mastery 5 with any species.', reward: { crystals: 30 }, test: (p) => Object.values(p.mastery).some((xp) => xp >= 5400) },
+  { id: 'daily-7', name: 'Regular', desc: 'Clear 7 Daily Rifts.', reward: { crystals: 40 }, test: (p) => p.stats.dailyClears >= 7 },
+];
