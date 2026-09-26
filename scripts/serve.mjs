@@ -2,8 +2,9 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = resolve(dirname(new URL(import.meta.url).pathname), '..');
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
 const port = Number(process.env.PORT) || 5173;
 

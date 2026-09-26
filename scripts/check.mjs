@@ -2,8 +2,9 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname, resolve, relative } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
-const root = resolve(dirname(new URL(import.meta.url).pathname), '..');
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const walk = (d) => readdirSync(d).flatMap((f) => { const p = join(d, f); return statSync(p).isDirectory() ? walk(p) : [p]; });
 const files = walk(join(root, 'src')).filter((f) => f.endsWith('.js'));
 let errors = 0;
@@ -22,7 +23,7 @@ for (const f of [...files, join(root, 'sw.js')]) {
 }
 const sw = readFileSync(join(root, 'sw.js'), 'utf8');
 const cached = new Set([...sw.matchAll(/'\.\/([^']*)'/g)].map((m) => m[1]).filter(Boolean));
-for (const f of files) { const rel = relative(root, f); if (!cached.has(rel)) err(`sw.js does not precache ${rel}`); }
+for (const f of files) { const rel = relative(root, f).replaceAll('\\', '/'); if (!cached.has(rel)) err(`sw.js does not precache ${rel}`); }
 for (const c of cached) if (c && !existsSync(join(root, c))) err(`sw.js precaches missing file ${c}`);
 if (errors) { console.error(`\n${errors} problem(s).`); process.exit(1); }
 console.log(`✓ ${files.length} modules clean, service worker covers all of them.`);

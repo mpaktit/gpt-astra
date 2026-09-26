@@ -200,6 +200,8 @@ kbd {
 .goals li .st { color: var(--paper-4); }
 .goals li.done { color: var(--ink); } .goals li.done .st { color: var(--gold); } .goals li.done .st svg { fill: currentColor; }
 .daily-reward { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.9375rem; }
+.daily-preview { display: flex; align-items: center; gap: 6px; margin: -2px 0 0; padding: 5px 10px; width: fit-content; border-radius: 99px; background: var(--gold-soft); color: var(--gold-ink); font-size: 0.8125rem; font-weight: 650; }
+.daily-preview svg { flex: none; }
 .species-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; margin: 0 -12px; border-radius: 14px; text-decoration: none; transition: background 0.15s; }
 .species-row:hover { background: var(--paper-2); }
 .species-row small { display: block; color: var(--ink-2); font-size: 0.8125rem; line-height: 1.35; margin-top: 2px; }

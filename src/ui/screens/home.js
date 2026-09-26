@@ -63,6 +63,9 @@ export const home = {
     const dailyDone = p.daily.last === dateKey();
     const firstTime = p.stats.runs === 0;
     const loginIdx = p.login.streak % LOGIN_REWARDS.length;
+    // Today's rift can land on a sector this pilot has not reached yet. It is a
+    // preview run, not a bypass, so say so instead of failing silently at launch.
+    const dailyLocked = isDaily && !unlocked.includes(w.id);
 
     return html`
     <section class="home">
@@ -82,7 +85,7 @@ export const home = {
 
         <div class="launch">
           <div class="modes" role="radiogroup" aria-label="Mode">
-            ${Object.values(MODES).map((m) => html`<button role="radio" aria-checked="${sel.modeId === m.id}" data-action="pick-mode" data-id="${m.id}">${m.name}${m.id === 'daily' && !dailyDone ? html`<i class="dot-new" aria-label="reward available"></i>` : ''}</button>`)}
+            ${Object.values(MODES).map((m) => html`<button role="radio" aria-checked="${sel.modeId === m.id ? 'true' : 'false'}" data-action="pick-mode" data-id="${m.id}">${m.name}${m.id === 'daily' && !dailyDone ? html`<i class="dot-new" aria-label="reward available"></i>` : ''}</button>`)}
           </div>
 
           <div class="preview-wrap"><canvas id="preview" aria-hidden="true"></canvas>
@@ -92,6 +95,7 @@ export const home = {
           <div class="launch-info">
             <p class="eyebrow">Sector ${w.order} · ${mode.name}${isDaily ? ` · ${MODIFIERS[daily.modifier].name}` : ''}</p>
             <h2 class="h-world">${w.name}</h2>
+            ${dailyLocked ? html`<p class="daily-preview">${icon('lock', 14)} Sector preview &mdash; unlocks at level ${w.unlockLevel}. This rift still counts.</p>` : ''}
             <p class="muted blurb">${isDaily ? MODIFIERS[daily.modifier].desc + ' Same seed for every pilot today.' : mode.id === 'blitz' ? mode.desc : w.blurb}</p>
             <div class="chips">
               ${w.hazards.length ? w.hazards.map((h) => html`<span class="chip-s">${HAZARD_LABEL[h]}</span>`) : html`<span class="chip-s">No hazards</span>`}
@@ -154,6 +158,7 @@ export const home = {
       const wrap = canvas.parentElement;
       const px = Math.max(160, Math.floor(Math.min(wrap.clientWidth, 340) / s.world.size) * s.world.size);
       r.resize(px);
+      if (p.settings.reducedMotion) r.draw(s, 1, performance.now(), 16);
     };
     fit();
     let acc = 0, last = performance.now(), raf = 0, game = s;

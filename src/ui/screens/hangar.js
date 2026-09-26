@@ -107,7 +107,7 @@ export const hangar = {
       detail = speciesDetail(p, sel);
       catalog = html`<ul class="species-list">${SPECIES.map((sp) => {
         const owned = p.owned.species.includes(sp.id);
-        return html`<li><button class="sp-row ${sp.id === sel.id ? 'on' : ''}" data-action="select" data-id="${sp.id}" aria-pressed="${sp.id === sel.id}">
+        return html`<li><button class="sp-row ${sp.id === sel.id ? 'on' : ''}" data-action="select" data-id="${sp.id}" aria-pressed="${sp.id === sel.id ? 'true' : 'false'}">
           <span class="species-glyph" style="--h:${sp.palette.head[2]}">${sp.name[0]}</span>
           <span class="sp-main"><b>${sp.name}</b><small>${sp.ability.name}</small></span>
           ${rarityChip(sp.rarity)}
@@ -124,7 +124,7 @@ export const hangar = {
         const own = owns(p, item.id) || item.id === 'default';
         const eq = p.equipped[tab.slot] === item.id;
         const pr = COSMETIC_PRICES[item.rarity];
-        return html`<li><button class="tile r-${item.rarity} ${item.id === sel.id ? 'on' : ''} ${own ? 'own' : ''}" data-action="select" data-id="${item.id}" aria-pressed="${item.id === sel.id}">
+        return html`<li><button class="tile r-${item.rarity} ${item.id === sel.id ? 'on' : ''} ${own ? 'own' : ''}" data-action="select" data-id="${item.id}" aria-pressed="${item.id === sel.id ? 'true' : 'false'}">
           ${tileVisual(item)}
           <span class="tile-name">${item.name}</span>
           <span class="tile-foot">${eq ? html`<em class="tag-on">Equipped</em>` : own ? html`<em>Owned</em>` : item.source ? html`${icon('lock', 13)}` : price(pr.stardust ? 'stardust' : 'crystals', pr.stardust || pr.crystals)}</span>
@@ -137,7 +137,7 @@ export const hangar = {
       <header class="page-head">
         <h1 class="h-display">Hangar</h1>
         <div class="tabs" role="tablist">
-          ${TABS.map((t) => { const c = counts.find((x) => x[0] === t.id); return html`<button role="tab" aria-selected="${t.id === tab.id}" data-action="tab" data-id="${t.id}">${t.label}${c ? html`<small>${c[1]}/${c[2]}</small>` : html`<small>${p.owned.species.length}/${SPECIES.length}</small>`}</button>`; })}
+          ${TABS.map((t) => { const c = counts.find((x) => x[0] === t.id); return html`<button role="tab" aria-selected="${t.id === tab.id ? 'true' : 'false'}" data-action="tab" data-id="${t.id}">${t.label}${c ? html`<small>${c[1]}/${c[2]}</small>` : html`<small>${p.owned.species.length}/${SPECIES.length}</small>`}</button>`; })}
         </div>
       </header>
       <div class="hangar-grid">
@@ -166,7 +166,11 @@ export const hangar = {
     };
     let g = mk();
     r.configure({ world: g.world, species: g.species, skinId, trailId, finaleId, settings: p.settings });
-    const fit = () => { const w = canvas.parentElement.clientWidth; r.resize(Math.max(154, Math.floor(Math.min(w, 380) / g.world.size) * g.world.size)); };
+    const fit = () => {
+      const w = canvas.parentElement.clientWidth;
+      r.resize(Math.max(154, Math.floor(Math.min(w, 380) / g.world.size) * g.world.size));
+      if (p.settings.reducedMotion) r.draw(g, 1, performance.now(), 16);
+    };
     fit();
     let raf = 0, last = performance.now(), acc = 0, finaleTimer = 0;
     const loop = (now) => {
@@ -185,7 +189,8 @@ export const hangar = {
       r.draw(g, Math.min(1, acc / 115), now, dt);
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
+    if (!p.settings.reducedMotion) raf = requestAnimationFrame(loop);
+    else r.draw(g, 1, performance.now(), 16);
     const ro = new ResizeObserver(fit); ro.observe(canvas.parentElement);
     stop = () => { cancelAnimationFrame(raf); ro.disconnect(); };
   },

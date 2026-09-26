@@ -40,7 +40,7 @@ export const play = {
         <div class="board" id="board">
           <canvas id="game" aria-label="Game board"></canvas>
           <div class="board-ov" id="ov" data-show=""></div>
-          <p class="coach" id="coach" hidden></p>
+          <p class="coach" id="coach" aria-live="polite" hidden></p>
         </div>
       </div>
 

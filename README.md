@@ -14,7 +14,7 @@ python3 -m http.server 5173
 
 On localhost the **demo store** is on, so crystal purchases credit fake currency and you can test the whole economy. On any other host it stays off unless `?demo-store=1` is set.
 
-Controls: arrows / WASD to steer, Space for the species ability, P or Esc to pause. On mobile, swipe to steer and tap the ability button.
+Controls: arrows / WASD to steer, `E` / `Shift` / `Q` for the species ability, `Space` / `P` / `Esc` to pause, `R` to restart, `M` to mute. On mobile, swipe to steer and tap the ability button.
 
 ## What's inside
 

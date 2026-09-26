@@ -61,7 +61,10 @@ export function rollCache(p, cacheId, rng) {
   const pool = SHOPPABLE.filter((x) => x.rarity === rarity && x.id !== 'none');
   // Prefer unowned items so caches feel generous; duplicates only when the tier is complete.
   const fresh = pool.filter((x) => !owns(p, x.id));
-  const item = rng.pick(fresh.length ? fresh : pool);
+  // An empty pool would hand back undefined and corrupt the save, so fall back to
+  // the best rarity that does have stock rather than crashing the open.
+  const item = rng.pick(fresh.length ? fresh : pool) || rng.pick(SHOPPABLE.filter((x) => x.id !== 'none'));
+  if (!item) return { rarity, item: null, pity };
   p.caches.opened++;
   return { rarity, item, pity };
 }
@@ -72,6 +75,7 @@ export function openCache(p, cacheId, now = Date.now(), { free = false } = {}) {
   if (!free && !spend(p, c.price, `cache:${cacheId}`, now)) return { ok: false, error: 'Not enough currency.' };
   const rng = createRng(hashString(`${p.seed}:${cacheId}:${p.caches.opened}`));
   const roll = rollCache(p, cacheId, rng);
+  if (!roll.item) return { ok: false, error: 'That cache is empty. Try again soon.' };
   const res = unlockCosmetic(p, roll.item.id);
   return { ok: true, ...roll, dup: res.dup, shards: res.shards || 0 };
 }

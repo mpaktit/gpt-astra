@@ -15,10 +15,14 @@ export const MODIFIERS = {
   giant:     { id: 'giant',     name: 'Giant',        desc: 'Start at length 12. Good luck turning.' },
 };
 
-/** Daily Rift config is pure: same date key -> same world, twist and seed for everyone. */
+/**
+ * Daily Rift config is pure: same date key -> same world, twist and seed for everyone.
+ * The pool is every sector, so each one gets its day. A pilot below the sector's
+ * unlock level still gets a preview run, so the UI labels it as one (see home.js).
+ */
 export function dailyConfig(dateKey) {
   const h = hashString('astra-daily-' + dateKey);
   const mods = Object.keys(MODIFIERS);
-  const world = WORLDS[h % 4]; // first four sectors so new pilots can play it
+  const world = WORLDS[h % WORLDS.length];
   return { dateKey, worldId: world.id, modifier: mods[(h >>> 8) % mods.length], seed: h };
 }
